@@ -108,9 +108,8 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
                 name: 'Raj'
             };
 
-            const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NjE2OTUxLCJ0eXBlIjoiY3VzdG9tZXIiLCJpYXQiOjE3NTEyODcyMTEsImlzcyI6ImRlbnRhbGthcnQifQ.6bZkWE46QkTKRYMh-oVne39SQR2-OGixxhNxl5yIJGc';
-
-            await StorageService.saveAuthData(userData, token);
+      
+            await StorageService.saveAuthData(userData, response?.data?.token);
             navigation.replace('ProductDetail');
         } else {
             setErrors({
