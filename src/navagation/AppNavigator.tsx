@@ -43,19 +43,34 @@ const AppNavigator: React.FC = () => {
   };
 
   if (initialAuthState.isLoading) {
-    return null; // Simple loading state
+    return null;
   }
 
   return (
     <NavigationContainer>
       <Stack.Navigator
         screenOptions={{
-          headerShown: false
+          headerShown: true,
+          headerTitleAlign: 'center',
         }}
         initialRouteName={initialAuthState.isAuthenticated ? 'ProductDetail' : 'Login'}
       >
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
+        <Stack.Screen
+          name="Login"
+          component={LoginScreen}
+        //   options={{
+        // title: 'Login',
+        // headerBackVisible: false,
+        //   }}
+        />
+        <Stack.Screen
+          name="ProductDetail"
+          component={ProductDetailScreen}
+        //   options={{
+        // title: 'Product Detail',
+        // headerBackTitle: 'Back',
+        //   }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

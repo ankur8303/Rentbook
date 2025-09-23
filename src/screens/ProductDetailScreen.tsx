@@ -53,7 +53,6 @@ const ProductDetailScreen: React.FC<Props> = ({ navigation }) => {
         setProduct(response.data);
       } else {
         setError(response.error || 'Failed to load product details');
-        // Use mock data for demonstration
         setProduct({
           id: 32233,
           name: 'Waldent Smart Endopro 2',
@@ -66,7 +65,6 @@ const ProductDetailScreen: React.FC<Props> = ({ navigation }) => {
       }
     } catch (err) {
       setError('Network error occurred');
-      // Use mock data as fallback
       setProduct({
         id: 32233,
         name: 'Waldent Smart Endopro 2',

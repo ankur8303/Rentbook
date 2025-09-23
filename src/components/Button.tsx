@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   primaryButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#205375',
   },
   secondaryButton: {
     backgroundColor: '#f0f0f0',
