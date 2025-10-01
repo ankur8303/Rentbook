@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { API_CONFIG } from '../constants';
-import { LoginCredentials, Product, ApiResponse } from '../types';
+import { LoginCredentials, ApiResponse } from '../types';
 
 const api = axios.create({
   baseURL: API_CONFIG.BASE_URL,
@@ -23,22 +23,7 @@ export class ApiService {
     }
   }
 
-  static async getProductDetails(productId: number, token: string): Promise<ApiResponse<Product>> {
-    try {
-      const response = await api.get(`/node_svlss/api/v1/products/${productId}/`, {
-        headers: {
-          ...API_CONFIG.HEADERS,
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      return { data: response.data, success: true };
-    } catch (error: any) {
-      return { 
-        error: error.response?.data?.message || 'Failed to fetch product', 
-        success: false 
-      };
-    }
-  }
+
 }
 
 export default api;

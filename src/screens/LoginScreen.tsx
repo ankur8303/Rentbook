@@ -18,6 +18,7 @@ import { ApiService } from '../services/api';
 import { StorageService } from '../services/storage';
 import { DEFAULT_CREDENTIALS } from '../constants';
 import { LoginCredentials } from '../types';
+import OtpSection from '../components/OtpSection';
 
 type RootStackParamList = {
     Login: undefined;
@@ -31,13 +32,13 @@ interface Props {
 }
 
 const LoginScreen: React.FC<Props> = ({ navigation }) => {
-    const [mobileNumber, setMobileNumber] = useState(DEFAULT_CREDENTIALS.email);
-    const [password, setPassword] = useState(DEFAULT_CREDENTIALS.password);
+    const [mobileNumber, setMobileNumber] = useState(DEFAULT_CREDENTIALS.mobile || '');
+    const [otp, setOtp] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [useOTP, setUseOTP] = useState(false);
+    const [showOtpScreen, setShowOtpScreen] = useState(false);
     const [errors, setErrors] = useState<{
         mobileNumber?: string;
-        password?: string;
+        otp?: string;
         general?: string;
     }>({});
 
@@ -52,81 +53,128 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
         }
     };
 
-    const validateForm = (): boolean => {
+    // Validate mobile number (10-digit numeric)
+    const validateMobileNumber = (): boolean => {
         const newErrors: typeof errors = {};
 
         if (!mobileNumber.trim()) {
             newErrors.mobileNumber = 'Mobile number is required';
-        } else if (!/\S+@\S+\.\S+/.test(mobileNumber)) {
-            newErrors.mobileNumber = 'Please enter a valid email address';
-        }
-
-        if (!useOTP) {
-            if (!password.trim()) {
-                newErrors.password = 'Password is required';
-            } else if (password.length < 6) {
-                newErrors.password = 'Password must be at least 6 characters';
-            }
-        } else {
-            if (!password.trim()) {
-                newErrors.password = 'OTP is required';
-            } else if (!/^\d{6}$/.test(password)) {
-                newErrors.password = 'OTP must be 6 digits';
-            }
+        } else if (!/^\d{10}$/.test(mobileNumber)) {
+            newErrors.mobileNumber = 'Please enter a valid 10-digit mobile number';
         }
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleLogin = async () => {
+    // Validate OTP (hardcoded 123456 for testing)
+    const validateOtp = (): boolean => {
+        const newErrors: typeof errors = {};
+
+        if (!otp.trim()) {
+            newErrors.otp = 'OTP is required';
+        } else if (!/^\d{6}$/.test(otp)) {
+            newErrors.otp = 'OTP must be 6 digits';
+        } else if (otp !== '123456') {
+            newErrors.otp = 'Invalid OTP. Please try again.';
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleSendOtp = async () => {
         setErrors({});
 
-        if (!validateForm()) {
-            return;
-        }
+        if (!validateMobileNumber()) return;
 
         setIsLoading(true);
+        try {
+            // Simulate API call to send OTP
+            await new Promise(resolve => setTimeout(resolve, 1000));
 
-        const credentials: LoginCredentials = {
-            recipient: mobileNumber,
-            action: 'login',
-            verification_type: useOTP ? 'otp' : 'password',
-            authentication_type: 'email',
-            credential: password,
-            new_password: ''
-        };
-
-        const response = await ApiService.login(credentials);
-        console.log('Login response:', response);
-        setIsLoading(false);
-
-        if (response.success && response.data) {
-            const userData = {
-                id: 1,
-                email: mobileNumber,
-                name: 'Raj'
-            };
-
-      
-            await StorageService.saveAuthData(userData, response?.data?.token);
-            navigation.replace('ProductDetail');
-        } else {
+            setShowOtpScreen(true);
             setErrors({
-                general: response.error || 'Login failed. Please check your credentials.'
+                general: 'OTP sent to your mobile number. Use 123456 for testing.'
             });
+        } catch (error) {
+            setErrors({ general: 'Failed to send OTP. Please try again.' });
+        } finally {
+            setIsLoading(false);
         }
     };
 
-    const handleForgotPassword = () => {
-        setErrors({
-            general: 'Forgot password feature coming soon!'
-        });
-    };
+//     const handleLogin = async () => {
+//         setErrors({});
 
-    const toggleAuthMethod = () => {
-        setUseOTP(!useOTP);
-        setPassword('');
+//         if (!validateOtp()) return;
+
+//         setIsLoading(true);
+
+//         const credentials: LoginCredentials = {
+//             recipient: mobileNumber,
+//             action: 'login',
+//             verification_type: 'otp',
+//             authentication_type: 'mobile',
+//             credential: otp,
+//             new_password: ''
+//         };
+// console.log('Login credentials:', credentials);
+//         const response = await ApiService.login(credentials);
+//         console.log('Login response:', response);
+//         setIsLoading(false);
+
+//         if (response.success && response.data) {
+//             const userData = {
+//                 id: 1,
+//                 mobile: mobileNumber,
+//                 name: 'Raj'
+//             };
+
+      
+//             await StorageService.saveAuthData(userData, response?.data?.token);
+//             navigation.replace('ProductDetail');
+//         } else {
+//             setErrors({
+//                 general: response.error || 'Login failed. Please check your credentials.'
+//             });
+//         }
+//     };
+const handleLogin = async () => {
+    setErrors({});
+
+    if (!validateOtp()) return;
+
+    setIsLoading(true);
+
+    try {
+        // Simulate login delay
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        // Static user data for demo purposes
+        const userData = {
+            id: 1,
+            mobile: mobileNumber,
+            name: 'Raj',
+        };
+
+        // Simulate saving auth state
+        await StorageService.saveAuthData(userData, 'static-token-123456');
+
+        // Navigate to next screen
+        navigation.replace('LandlordPropert');
+    } catch (error) {
+        setErrors({
+            general: 'Login failed. Please try again.',
+        });
+    } finally {
+        setIsLoading(false);
+    }
+};
+
+    const handleBackToMobile = () => {
+        setShowOtpScreen(false);
+        setOtp('');
         setErrors({});
     };
 
@@ -139,213 +187,96 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
             <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
             <View style={styles.topSection}>
                 <ImageBackground
-                    source={require('../Image/loginImage.png')}
+                    source={require('../Image/homebroker.png')}
                     style={styles.backgroundImage}
                     resizeMode="cover"
-                >
+                />
+            </View>
 
-                </ImageBackground>
-            </View>
-            <View style={styles.bottomSection}>
-                <KeyboardAvoidingView
-                    style={styles.keyboardAvoid}
-                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            <KeyboardAvoidingView
+                style={styles.bottomSection}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            >
+                <ScrollView
+                    contentContainerStyle={styles.scrollContent}
+                    showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
                 >
-                    <ScrollView
-                        contentContainerStyle={styles.scrollContent}
-                        showsVerticalScrollIndicator={false}
-                    >
-                        <View style={styles.formContainer}>
-                            <Image
-                                source={require('../Image/logoandsigne.png')}
-                                style={styles.logo}
-                                resizeMode="contain"
-                            />
-                            <Text style={styles.sectionTitle}>Log In or Sign up</Text>
-                            <Text style={styles.promoText}>Sign up now and get 500 Dentacains</Text>
-                            <View style={styles.inputWrapper}>
-                                <InputField
-                                    label="Mobile Number"
-                                    value={mobileNumber}
-                                    onChangeText={(text) => {
-                                        setMobileNumber(text);
-                                        clearError('mobileNumber');
-                                        clearError('general');
-                                    }}
-                                    placeholder="Enter your mobile number"
-                                    keyboardType="email-address"
-                                />
-                                {errors.mobileNumber && (
-                                    <Text style={styles.errorText}>{errors.mobileNumber}</Text>
-                                )}
-                            </View>
-                            <View style={styles.inputWrapper}>
-                                {!useOTP ? (
-                                    <>
-                                        <InputField
-                                            label="Password"
-                                            value={password}
-                                            onChangeText={(text) => {
-                                                setPassword(text);
-                                                clearError('password');
-                                                clearError('general');
-                                            }}
-                                            placeholder="Enter your password"
-                                            secureTextEntry
-                                        />
-                                        {errors.password && (
-                                            <Text style={styles.errorText}>{errors.password}</Text>
-                                        )}
-                                    </>
-                                ) : (
-                                    <>
-                                        <InputField
-                                            label="OTP"
-                                            value={password}
-                                            onChangeText={(text) => {
-                                                setPassword(text);
-                                                clearError('password');
-                                                clearError('general');
-                                            }}
-                                            placeholder="Enter OTP"
-                                            keyboardType="number-pad"
-                                        />
-                                        {errors.password && (
-                                            <Text style={styles.errorText}>{errors.password}</Text>
-                                        )}
-                                    </>
-                                )}
-                            </View>
-                            <View style={{width: '100%', flexDirection:'row', justifyContent:'space-between'}}>
-                            <TouchableOpacity onPress={toggleAuthMethod} style={styles.authToggle}>
-                                <Text style={styles.authToggleText}>
-                                    Use {useOTP ? 'Password' : 'OTP'}
-                                </Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity onPress={handleForgotPassword} style={styles.forgotPassword}>
-                                <Text style={styles.forgotPasswordText}>Forgot password?</Text>
-                            </TouchableOpacity>
-                            </View>
-                            {errors.general && (
-                                <View style={styles.errorContainer}>
-                                    <Text style={styles.generalErrorText}>{errors.general}</Text>
+                    <View style={styles.formContainer}>
+                        {!showOtpScreen ? (
+                            // Mobile Number Screen
+                            <>
+                                <View style={styles.inputWrapper}>
+                                    <InputField
+                                        label="Mobile Number"
+                                        value={mobileNumber}
+                                        onChangeText={(text) => {
+                                            setMobileNumber(text);
+                                            clearError('mobileNumber');
+                                            clearError('general');
+                                        }}
+                                        // placeholder="Enter your mobile number"
+                                        keyboardType="phone-pad"
+                                        autoFocus
+                                    />
+                                    {errors.mobileNumber && (
+                                        <Text style={styles.errorText}>{errors.mobileNumber}</Text>
+                                    )}
                                 </View>
-                            )}
-                            <View style={{width: '100%'}}>
-                            <Button
-                                title="Continue"
-                                onPress={handleLogin}
-                                loading={isLoading}
-                                disabled={isLoading}
+
+                                {errors.general && (
+                                    <View style={styles.errorContainer}>
+                                        <Text style={styles.generalErrorText}>{errors.general}</Text>
+                                    </View>
+                                )}
+
+                                <Button
+                                    title="Send OTP"
+                                    onPress={handleSendOtp}
+                                    loading={isLoading}
+                                    disabled={isLoading || !mobileNumber.trim()}
+                                />
+                            </>
+                        ) : (
+                            <OtpSection
+                                mobileNumber={mobileNumber}
+                                otp={otp}
+                                setOtp={setOtp}
+                                onBack={handleBackToMobile}
+                                onVerify={handleLogin}
+                                isLoading={isLoading}
+                                error={errors.otp || errors.general}
+                                onResend={handleSendOtp}
                             />
-                            </View>
-                            <View style={styles.footer}>
-                                <Text style={styles.helpText}>Need help? Connect with us</Text>
-                                <Text style={styles.termsText}>
-                                    By logging or signing up, you agree to our Terms & Policy
-                                </Text>
-                            </View>
+
+                        )}
+
+                        <View style={styles.footer}>
+                            <Text style={styles.helpText}>Need help? Connect with us</Text>
+                            <Text style={styles.termsText}>
+                                By logging or signing up, you agree to our Terms & Policy
+                            </Text>
                         </View>
-                    </ScrollView>
-                </KeyboardAvoidingView>
-            </View>
+                    </View>
+                </ScrollView>
+            </KeyboardAvoidingView>
         </View>
     );
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#ffffff',
-    },
-    topSection: {
-        height: '35%', 
-        backgroundColor: '#f0f0f0',
-    },
-    backgroundImage: {
-        width: '100%',
-        height: '100%',
-    },
-    logoContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    },
-    logo: {
-        width: 120,
-        height: 120,
-    },
-    bottomSection: {
-        flex: 1,
-        backgroundColor: '#ffffff',
-        // borderTopLeftRadius: 20,
-        // borderTopRightRadius: 20,
-        marginTop: -20, 
-        justifyContent: 'center',
-        alignItems: 'center'
-    },
-    keyboardAvoid: {
-        flex: 1,
-    },
-    scrollContent: {
-        flexGrow: 1,
-        paddingHorizontal: 25,
-        paddingTop: 20,
-    },
-    formContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    sectionTitle: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#2483B9',
-        // marginBottom: 8,
-        // textAlign: 'left',
-    },
-    promoText: {
-        fontSize: 14,
-        fontWeight: '500',
-        color: '#2483B9',
-        marginBottom: 30,
-        // fontWeight: '500',
-    },
-    inputWrapper: {
-        // marginBottom: 20,
-        width: '100%',
-    },
-    authToggle: {
-        alignSelf: 'flex-start',
-        marginBottom: 15,
-        paddingVertical: 5,
-    },
-    authToggleText: {
-        color: '#007AFF', 
-        fontSize: 14,
-        fontWeight: '600',
-    },
-    forgotPassword: {
-        alignSelf: 'flex-start',
-        marginBottom: 25,
-        paddingVertical: 5,
-    },
-    forgotPasswordText: {
-        color: '#666666',
-        fontSize: 14,
-        fontWeight: '500',
-    },
-    errorContainer: {
-        marginBottom: 15,
-    },
-    errorText: {
-        color: '#BC1723',
-        fontSize: 12,
-        marginTop: 5,
-        marginLeft: 5,
-        fontWeight: '500',
-    },
+    container: { flex: 1, backgroundColor: '#ffffff' },
+    topSection: { height: '35%', backgroundColor: '#f0f0f0' },
+    backgroundImage: { width: '100%', height: '100%' },
+    logo: { width: 120, height: 120 },
+    bottomSection: { flex: 1, backgroundColor: '#ffffff', marginTop: -20 },
+    scrollContent: { flexGrow: 1, paddingHorizontal: 25, paddingTop: 20 },
+    formContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    sectionTitle: { fontSize: 14, fontWeight: '600', color: '#2483B9' },
+    promoText: { fontSize: 14, fontWeight: '500', color: '#2483B9', marginBottom: 30 },
+    inputWrapper: { marginBottom: 20, width: '100%' },
+    errorContainer: { marginBottom: 15, width: '100%' },
+    errorText: { color: '#BC1723', fontSize: 12, marginTop: 5, marginLeft: 5, fontWeight: '500' },
     generalErrorText: {
         color: '#BC1723',
         fontSize: 14,
@@ -355,25 +286,19 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(255, 59, 48, 0.1)',
         borderRadius: 8,
         borderLeftWidth: 4,
-        borderLeftColor: '#BC1723',
+        borderLeftColor: '#BC1723'
     },
-    footer: {
-        marginTop: 'auto',
-        paddingVertical: 20,
-        alignItems: 'center',
-    },
-    helpText: {
-        fontSize: 14,
-        color: '#666666',
-        marginBottom: 8,
-        fontWeight: '500',
-    },
-    termsText: {
-        fontSize: 12,
-        color: '#999999',
-        textAlign: 'center',
-        lineHeight: 16,
-    },
+    footer: { marginTop: 'auto', paddingVertical: 20, alignItems: 'center' },
+    helpText: { fontSize: 14, color: '#666666', marginBottom: 8, fontWeight: '500' },
+    termsText: { fontSize: 12, color: '#999999', textAlign: 'center', lineHeight: 16 },
+    otpHeader: { width: '100%', marginBottom: 20 },
+    backButton: { alignSelf: 'flex-start', marginBottom: 10 },
+    backButtonText: { color: '#007AFF', fontSize: 16, fontWeight: '600' },
+    otpTitle: { fontSize: 18, fontWeight: '600', color: '#333', marginBottom: 5 },
+    otpSubtitle: { fontSize: 14, color: '#666', marginBottom: 10 },
+    resendOtp: { alignSelf: 'flex-start', marginBottom: 25 },
+    resendOtpText: { color: '#666666', fontSize: 14 },
+    resendLink: { color: '#007AFF', fontWeight: '600' },
 });
 
 export default LoginScreen;

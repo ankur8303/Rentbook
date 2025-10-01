@@ -20,6 +20,6 @@ export const STORAGE_KEYS = {
 };
 
 export const DEFAULT_CREDENTIALS = {
-  email: 'raj@yopmail.com',
-  password: '123456'
+  mobile: '7991271790',
+  otp: '123456'
 };

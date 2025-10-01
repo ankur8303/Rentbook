@@ -5,10 +5,12 @@ import LoginScreen from '../screens/LoginScreen';
 import ProductDetailScreen from '../screens/ProductDetailScreen';
 import { StorageService } from '../services/storage';
 import { AuthState } from '../types';
+import LandlordProperties from '../screens/LandlordProperties';
 
 export type RootStackParamList = {
   Login: undefined;
   ProductDetail: undefined;
+  LandlordPropert:undefined
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -53,23 +55,15 @@ const AppNavigator: React.FC = () => {
           headerShown: true,
           headerTitleAlign: 'center',
         }}
-        initialRouteName={initialAuthState.isAuthenticated ? 'ProductDetail' : 'Login'}
+        initialRouteName={initialAuthState.isAuthenticated ? 'LandlordPropert' : 'Login'}
       >
         <Stack.Screen
           name="Login"
           component={LoginScreen}
-        //   options={{
-        // title: 'Login',
-        // headerBackVisible: false,
-        //   }}
         />
-        <Stack.Screen
-          name="ProductDetail"
-          component={ProductDetailScreen}
-        //   options={{
-        // title: 'Product Detail',
-        // headerBackTitle: 'Back',
-        //   }}
+         <Stack.Screen
+          name="LandlordPropert"
+          component={LandlordProperties}
         />
       </Stack.Navigator>
     </NavigationContainer>

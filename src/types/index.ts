@@ -1,7 +1,7 @@
 export interface User {
   id: number;
-  email: string;
-  name?: string;
+  mobile: string;
+  otp?: string;
 }
 
 export interface LoginCredentials {
@@ -11,16 +11,6 @@ export interface LoginCredentials {
   authentication_type: string;
   credential: string;
   new_password: string;
-}
-
-export interface Product {
-  id: number;
-  name: string;
-  description?: string;
-  price?: number;
-  image_url?: string;
-  sku?: string;
-  category?: string;
 }
 
 export interface ApiResponse<T> {
